@@ -1,206 +1,196 @@
-// --- Helpers ---
-const qs = (s) => document.querySelector(s);
-const qsa = (s) => Array.from(document.querySelectorAll(s));
+// ===== UTILITIES =====
+const qs = (s, el = document) => el.querySelector(s);
+const qsa = (s, el = document) => [...el.querySelectorAll(s)];
 
-let secret = generateSecret();
-let history = [];
+const digitsInputs = qsa('.digit');
+const historyBody = qs('#historyBody');
+const hint = qs('#hint');
+const submitBtn = qs('#submitBtn');
+const resetBtn = qs('#resetBtn');
+const themeBtn = qs('#themeBtn');
+const iconSun = qs('#iconSun');
+const iconMoon = qs('#iconMoon');
+const keypad = qs('#keypad');
 
-const inputs = qsa(".digit");
-const submitBtn = qs("#submitBtn");
-const resetBtn = qs("#resetBtn");
-const hint = qs("#hint");
-const tbody = qs("#historyBody");
-const keypad = qsa(".key");
+let secret = [];
+let theme = localStorage.getItem('f4-theme') || 'system';
 
-initTheme();
-wireInputs();
-renderHistory();
-
-// Focus first box on load
-inputs[0].focus();
-
-/* Generate 4 unique digits from 1..9 */
-function generateSecret() {
-  const digits = ["1","2","3","4","5","6","7","8","9"];
-  for (let i = digits.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [digits[i], digits[j]] = [digits[j], digits[i]];
+// ===== THEME =====
+function applyTheme(value) {
+  document.documentElement.setAttribute('data-theme', value);
+  iconSun.classList.toggle('hidden', value === 'dark');
+  iconMoon.classList.toggle('hidden', value !== 'dark');
+}
+function initTheme() {
+  if (theme === 'system') {
+    // adopt current system scheme
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  } else {
+    applyTheme(theme);
   }
-  const result = digits.slice(0,4);
-  // console.log("Secret:", result.join("")); // uncomment for debugging
-  return result;
+}
+themeBtn.addEventListener('click', () => {
+  // toggle light/dark (system was only for initial load)
+  theme = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+  localStorage.setItem('f4-theme', theme);
+  applyTheme(theme);
+});
+initTheme();
+
+// ===== SECRET NUMBER =====
+function makeSecret() {
+  const pool = ['1','2','3','4','5','6','7','8','9'];
+  secret = [];
+  while (secret.length < 4) {
+    const n = pool.splice(Math.floor(Math.random()*pool.length), 1)[0];
+    secret.push(n);
+  }
+  // console.log('SECRET:', secret.join('')); // uncomment for debugging
+}
+makeSecret();
+
+// ===== INPUT FLOW (auto-advance, backspace, no duplicates) =====
+function nextEmptyIndex() {
+  for (let i = 0; i < 4; i++) if (!digitsInputs[i].value) return i;
+  return 4;
+}
+function setHint(msg, isError=false) {
+  hint.textContent = msg || '';
+  hint.style.color = isError ? '#e11d48' : 'var(--muted)';
 }
 
-function getGuessArray() {
-  return inputs.map(i => (i.value || "").trim());
+function shake(el) {
+  el.classList.remove('shake');
+  void el.offsetWidth; // restart animation
+  el.classList.add('shake');
 }
 
-function hasDuplicates(arr) {
-  const s = new Set(arr);
-  return s.size !== arr.length;
+function isDuplicate(value, index) {
+  const vals = digitsInputs.map((inp, i) => i === index ? value : inp.value);
+  const set = new Set(vals.filter(Boolean));
+  return set.size !== vals.filter(Boolean).length;
 }
 
-function validGuess(arr) {
-  if (arr.some(d => d === "")) return { ok: false, msg: "Enter all four digits." };
-  if (arr.some(d => d === "0")) return { ok: false, msg: "Use digits 1–9 (no zero)." };
-  if (hasDuplicates(arr)) return { ok: false, msg: "All digits must be unique." };
-  return { ok: true, msg: "" };
-}
+digitsInputs.forEach((inp, index) => {
+  // Keep selection at end
+  inp.addEventListener('focus', e => { e.target.select(); });
 
-/* Count digit matches and position matches */
-function scoreGuess(guessArr, secretArr) {
-  const correctDigits = guessArr.filter(d => secretArr.includes(d)).length;
-  let correctPositions = 0;
-  for (let i = 0; i < 4; i++) if (guessArr[i] === secretArr[i]) correctPositions++;
-  return { correctDigits, correctPositions };
-}
+  // Typing
+  inp.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, ''); // numbers only
+    if (v === '0') v = ''; // 1-9 only
+    if (v.length > 1) v = v.slice(-1);
 
-/* --- Input behavior: auto-advance, prevent duplicates, backspace auto-shift --- */
-function wireInputs() {
-  inputs.forEach((input, idx) => {
-    input.addEventListener("beforeinput", (e) => {
-      // Only allow digits 1..9; block other input (including 0)
-      if (e.data && !/^[1-9]$/.test(e.data)) {
-        e.preventDefault();
-      }
-    });
+    // reject duplicates
+    if (v && isDuplicate(v, index)) {
+      e.target.value = '';
+      setHint('No repeated digits (1–9).', true);
+      shake(e.target);
+      return;
+    }
 
-    input.addEventListener("input", (e) => {
-      let v = input.value.replace(/[^1-9]/g, "");
-      if (v.length > 1) v = v[0];
-      // Prevent duplicates across boxes
-      const others = getGuessArray().filter((_, i) => i !== idx);
-      if (others.includes(v)) {
-        input.value = "";
-        flash(input);
-        setHint("No repeating digits.");
-        return;
-      }
-      input.value = v;
+    e.target.value = v;
+    setHint('');
 
-      // Move to next if filled
-      if (v && idx < 3) inputs[idx + 1].focus();
-      setHint("");
-    });
-
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace") {
-        if (input.value === "" && idx > 0) {
-          inputs[idx - 1].focus();
-          inputs[idx - 1].value = "";
-        }
-      } else if (e.key === "ArrowLeft" && idx > 0) {
-        inputs[idx - 1].focus();
-      } else if (e.key === "ArrowRight" && idx < 3) {
-        inputs[idx + 1].focus();
-      } else if (e.key === "Enter") {
-        submit();
-      }
-    });
-
-    // Double-click to stick focus (default behavior is fine; kept for spec)
-    input.addEventListener("dblclick", () => input.select());
+    if (v && index < 3) {
+      digitsInputs[index + 1].focus();
+    }
   });
 
-  submitBtn.addEventListener("click", submit);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") submit();
+  // Backspace auto-move left if empty
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      digitsInputs[index - 1].focus();
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onSubmit();
+    }
+    // Left/Right arrow convenience
+    if (e.key === 'ArrowLeft' && index > 0) digitsInputs[index - 1].focus();
+    if (e.key === 'ArrowRight' && index < 3) digitsInputs[index + 1].focus();
   });
+});
 
-  // Keypad (desktop)
-  keypad.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const d = btn.textContent.trim();
-      // Fill the first empty box that doesn't have duplicate
-      for (let i = 0; i < 4; i++) {
-        if (!inputs[i].value) {
-          // reject duplicates
-          if (getGuessArray().includes(d)) {
-            flash(inputs[i]);
-            setHint("No repeating digits.");
-            return;
-          }
-          inputs[i].value = d;
-          if (i < 3) inputs[i + 1].focus();
-          else inputs[i].focus();
-          break;
-        }
-      }
-    });
+// ===== KEYPAD (desktop) =====
+if (keypad) {
+  keypad.addEventListener('click', (e) => {
+    const btn = e.target.closest('.key');
+    if (!btn) return;
+    const digit = btn.textContent;
+    const idx = nextEmptyIndex();
+    if (idx >= 4) {
+      setHint('All four filled. Press Enter.', false);
+      return;
+    }
+    if (isDuplicate(digit, idx)) {
+      setHint('No repeated digits (1–9).', true);
+      shake(digitsInputs[idx]);
+      return;
+    }
+    digitsInputs[idx].value = digit;
+    if (idx < 3) digitsInputs[idx + 1].focus();
+    else digitsInputs[idx].focus();
   });
-
-  resetBtn.addEventListener("click", resetGame);
 }
 
-function submit() {
-  const guess = getGuessArray();
-  const v = validGuess(guess);
-  if (!v.ok) {
-    setHint(v.msg);
-    shakeInputs();
+// ===== SUBMIT / SCORE =====
+function scoreGuess(guessArr) {
+  // digits correct = intersection count (order independent)
+  const digitsCorrect = guessArr.filter(d => secret.includes(d)).length;
+  // positions correct = same index match
+  const positionsCorrect = guessArr.reduce((acc, d, i) => acc + (secret[i] === d ? 1 : 0), 0);
+  return { digitsCorrect, positionsCorrect };
+}
+
+function onSubmit() {
+  const guessArr = digitsInputs.map(i => i.value);
+  if (guessArr.some(v => !v)) {
+    setHint('Enter all 4 digits (1–9, no repeats).', true);
+    shake(qs('.inputs'));
     return;
   }
+  const { digitsCorrect, positionsCorrect } = scoreGuess(guessArr);
 
-  const { correctDigits, correctPositions } = scoreGuess(guess, secret);
-  const numberStr = guess.join("");
-  history.unshift({ numberStr, correctDigits, correctPositions });
-  renderHistory();
+  // Append to history (new row goes BELOW previous ones)
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${guessArr.join('')}</td>
+    <td>${digitsCorrect}</td>
+    <td>${positionsCorrect}</td>
+  `;
+  historyBody.appendChild(tr);
 
-  if (correctPositions === 4) {
-    setHint("🎉 You cracked it! Press Reset to play again.");
-    inputs.forEach(i => i.classList.add("win"));
+  // Auto-scroll the history container (only that pane, not page)
+  const wrap = qs('.table-wrap');
+  wrap.scrollTop = wrap.scrollHeight;
+
+  if (positionsCorrect === 4) {
+    setHint('🎉 You cracked it! Press Reset to play again.');
+    submitBtn.disabled = true;
+    digitsInputs.forEach(inp => inp.disabled = true);
   } else {
-    setHint(`${correctDigits} correct digit${s(correctDigits)}, ${correctPositions} in correct position${s(correctPositions)}.`);
+    setHint(`${digitsCorrect} digit(s) correct • ${positionsCorrect} in correct position.`);
   }
 
-  // Clear inputs after each try
-  inputs.forEach(i => (i.value = ""));
-  inputs[0].focus();
+  // Prepare for next guess
+  digitsInputs.forEach(inp => inp.value = '');
+  digitsInputs[0].focus();
 }
 
-function renderHistory() {
-  tbody.innerHTML = history
-    .map(
-      (h) => `<tr>
-        <td>${h.numberStr}</td>
-        <td>${h.correctDigits}</td>
-        <td>${h.correctPositions}</td>
-      </tr>`
-    )
-    .join("");
-}
+submitBtn.addEventListener('click', onSubmit);
 
+// ===== RESET =====
 function resetGame() {
-  secret = generateSecret();
-  history = [];
-  renderHistory();
-  inputs.forEach(i => { i.value = ""; i.classList.remove("win"); });
-  inputs[0].focus();
-  setHint("New round started.");
+  makeSecret();
+  historyBody.innerHTML = '';
+  setHint('New game started. Good luck!');
+  submitBtn.disabled = false;
+  digitsInputs.forEach(inp => { inp.disabled = false; inp.value = ''; });
+  digitsInputs[0].focus();
 }
+resetBtn.addEventListener('click', resetGame);
 
-function setHint(msg) { hint.textContent = msg; }
-function s(n){ return n === 1 ? "" : "s"; }
-function shakeInputs(){ inputs.forEach(i => { i.classList.add("shake"); setTimeout(()=>i.classList.remove("shake"), 200); }); }
-function flash(el){ el.classList.add("shake"); setTimeout(()=>el.classList.remove("shake"), 150); }
-
-/* --- THEME TOGGLE --- */
-function initTheme() {
-  const key = "formula4-theme";
-  const saved = localStorage.getItem(key) || "system";
-  setTheme(saved);
-
-  qs("#themeToggle").addEventListener("click", () => {
-    const current = document.documentElement.getAttribute("data-theme");
-    const next = current === "light" ? "dark" : current === "dark" ? "system" : "light";
-    setTheme(next);
-    localStorage.setItem(key, next);
-  });
-}
-function setTheme(mode) {
-  document.documentElement.setAttribute("data-theme", mode);
-  const icon = qs("#themeIcon");
-  if (mode === "light") icon.textContent = "☀️";
-  else if (mode === "dark") icon.textContent = "🌙";
-  else icon.textContent = "🌓"; // system
-}
+// Focus first box on load
+window.addEventListener('load', () => digitsInputs[0].focus());
