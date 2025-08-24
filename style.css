@@ -101,6 +101,7 @@ body {
   border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 16px;
+
 }
 
 /* Interaction panel */
@@ -130,12 +131,21 @@ body {
   box-shadow: var(--shadow);
 }
 
+.panel.interact {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* or give a fixed height if needed */
+}
+
+
+
+
 /* Keypad (hidden on small screens) */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  margin-top: 14px;
+  margin-top: auto;
 }
 .key {
   height: 78px; border-radius: 14px; border: none; cursor: pointer; font-weight: 800;
