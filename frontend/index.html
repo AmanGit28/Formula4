@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formula4</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="brand">
+      <div class="logo-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <h1 class="logo-text">FORMULA4</h1>
+      <div class="logo-dots bottom">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button id="themeToggle" class="icon-btn" title="Toggle theme">
+        <span class="icon" id="themeIcon" aria-hidden="true">🌓</span>
+      </button>
+      <button id="resetBtn" class="outline-btn" title="Restart game">Reset</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: Input area -->
+    <section class="play">
+      <h2 class="section-title">Try a guess</h2>
+
+      <div class="inputs" role="group" aria-label="4 digit non-repeating guess">
+        <input inputmode="numeric" maxlength="1" class="digit" id="d1" autocomplete="off" />
+        <input inputmode="numeric" maxlength="1" class="digit" id="d2" autocomplete="off" />
+        <input inputmode="numeric" maxlength="1" class="digit" id="d3" autocomplete="off" />
+        <input inputmode="numeric" maxlength="1" class="digit" id="d4" autocomplete="off" />
+      </div>
+
+      <div class="actions">
+        <button id="submitBtn" class="primary-btn">Enter</button>
+        <p id="hint" class="hint" aria-live="polite"></p>
+      </div>
+
+      <!-- Desktop keypad (hidden on small screens) -->
+      <div class="keypad" aria-hidden="true">
+        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: History -->
+    <section class="history">
+      <h2 class="section-title">History</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Number</th>
+              <th>Digit</th>
+              <th>Position</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <!-- rows appended here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="signature">
+    Made by Aman Prajapati · amanprajapati281004@gmail.com
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
