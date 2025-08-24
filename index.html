@@ -1,82 +1,67 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="system">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Formula4 - Single Player</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formula4</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo-dot"></div>
-      <h1 class="logo">FORMULA4</h1>
-      <div class="logo-dot"></div>
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="logo">Formula4</div>
+    <div class="nav-buttons">
+      <button id="theme-toggle" class="nav-btn" title="Toggle Dark/Light Mode">🌓</button>
+      <button id="info-btn" class="nav-btn" title="Info">ℹ️</button>
+      <button id="signup-btn" class="nav-btn" title="Sign Up">Sign Up</button>
     </div>
+  </nav>
 
-    <div class="actions">
-      <button id="themeBtn" class="icon-btn" aria-label="Toggle theme" title="Toggle theme">
-        <!-- cute sun/moon icon -->
-        <svg id="iconSun" viewBox="0 0 24 24" class="icon">
-          <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zM1 13h3v-2H1v2zm10 10h2v-3h-2v3zm9-10v-2h-3v2h3zm-2.95 7.95l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM12 6a6 6 0 100 12 6 6 0 000-12zm8-1l-1.41-1.41-1.8 1.79 1.41 1.41L20 5zM4.05 17.95l1.4-1.4-1.79-1.8L2.25 16.1l1.8 1.85zM12 1h-2v3h2V1z"/>
-        </svg>
-        <svg id="iconMoon" viewBox="0 0 24 24" class="icon hidden">
-          <path d="M21.64 13a9 9 0 01-11.3-11.3A10 10 0 1021.64 13z"/>
-        </svg>
-      </button>
-
-      <button id="resetBtn" class="pill-btn" title="Start a new game">Reset</button>
-    </div>
-  </header>
-
-  <main class="stage">
-    <!-- Left: Interaction -->
-    <section class="panel interact" aria-label="Interaction area">
-      <h2 class="visually-hidden">Interaction</h2>
-
-      <div class="inputs" id="inputs">
-        <input inputmode="numeric" pattern="[1-9]" maxlength="1" class="digit" aria-label="Digit 1" />
-        <input inputmode="numeric" pattern="[1-9]" maxlength="1" class="digit" aria-label="Digit 2" />
-        <input inputmode="numeric" pattern="[1-9]" maxlength="1" class="digit" aria-label="Digit 3" />
-        <input inputmode="numeric" pattern="[1-9]" maxlength="1" class="digit" aria-label="Digit 4" />
+  <!-- ===== Main Content ===== -->
+  <div class="container">
+    <main class="main-section">
+      <div class="intro">
+        <h1>Welcome to Formula4</h1>
+        <p>
+          Formula4 is a fun and interactive racing experience built for 
+          single-player and multiplayer modes. Choose how you want to play, 
+          race against your friends locally, or challenge others online.
+        </p>
       </div>
-
-      <div id="hint" class="hint" role="status" aria-live="polite"></div>
-
-      <button id="submitBtn" class="cta">Enter</button>
-
-      <!-- Desktop/Laptop keypad (hidden on mobile) -->
-      <div class="keypad" id="keypad" aria-label="Keypad">
-        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
-        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
-        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+      
+      <div class="options">
+        <h2>Choose Your Mode</h2>
+        <div class="buttons">
+          <a href="./singleplayer/" class="btn">Single Player</a>
+          <a href="./multiplayer/" class="btn">Multiplayer Here</a>
+          <a href="./online/" class="btn">Multiplayer Online</a>
+        </div>
       </div>
-    </section>
-
-    <!-- Right: History -->
-    <section class="panel history" aria-label="History">
-      <h2 class="history-title">History</h2>
-      <div class="table-wrap">
-        <table class="table" id="historyTable">
-          <thead>
-            <tr>
-              <th>Number</th>
-              <th>Digit</th>
-              <th>Position</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody">
-            <!-- rows append here (newest BELOW previous) -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <footer class="signature">
-    Made by Aman Prajapati &nbsp; • &nbsp; amanprajapati281004@gmail.com
+    </main>
+  </div>
+  
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <p>Contact: <a href="mailto:yourmail@example.com">yourmail@example.com</a></p>
+    <p>&copy; 2025 Formula4. All rights reserved.</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script>
+    // Dark/Light mode toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // Info button
+    document.getElementById('info-btn').onclick = () => {
+      alert('Formula4: A fun and interactive racing experience!');
+    };
+
+    // Sign Up button
+    document.getElementById('signup-btn').onclick = () => {
+      window.location.href = './signup/';
+    };
+  </script>
 </body>
 </html>

@@ -134,7 +134,7 @@ if (keypad) {
     else digitsInputs[idx].focus();
   });
 }
-
+ 
 // ===== SUBMIT / SCORE =====
 function scoreGuess(guessArr) {
   // digits correct = intersection count (order independent)

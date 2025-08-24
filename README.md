@@ -1,6 +1,6 @@
 # Formula4 
 
-Welcome to **Formula4** — a fun and fast-paced **racing game** you can play right in your browser!  
+Welcome to **Formula4** — a fun and fast-paced **number guessing game** you can play right in your browser!  
 
 ---
 
@@ -12,7 +12,7 @@ Welcome to **Formula4** — a fun and fast-paced **racing game** you can play ri
 
 ---
 
-## 🚀 How to Play - Game Rules
+## 🎮 How to Play - Game Rules
 - A player will choose a 4 digit not repeating number from 1 to 9.
 - The user needs to find that number using the clue he gets on each step.
 - User can randomly bluff the number and if it is closer the clue will be given, like 2 digit are correct and 1 is on the correct position also.
@@ -21,6 +21,11 @@ Welcome to **Formula4** — a fun and fast-paced **racing game** you can play ri
 ---
 
 ## 🚀 How to start
-1. Clone this repo:
+1. Use the Online Website :
    ```bash
    git clone https://github.com/AmanGit28/Formula4.git
+
+2. Clone this repo:
+   ```bash
+   git clone https://github.com/AmanGit28/Formula4.git
+
